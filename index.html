@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>RealisticTiers</title>
+<style>
+:root{
+  --bg:#0b1118;--panel:#111827;--row:#0f172a;--border:#1f2937;
+  --text:#e5e7eb;--muted:#9ca3af;--gold:#facc15
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,Segoe UI,Arial,sans-serif}
+header{padding:16px 24px;border-bottom:1px solid var(--border)}
+header h1{margin:0;font-size:22px}
+.tabs{display:flex;gap:10px;padding:14px 24px;border-bottom:1px solid var(--border)}
+.tab{padding:8px 14px;border-radius:10px;background:var(--panel);color:var(--muted);cursor:pointer}
+.tab.active{color:#fff;outline:2px solid #2563eb}
+.board{padding:12px 24px}
+.row{display:grid;grid-template-columns:40px 48px 1.5fr 2fr;gap:14px;align-items:center;
+  padding:14px;background:var(--row);border:1px solid var(--border);
+  border-radius:14px;margin-bottom:10px}
+.rank{font-size:22px;font-weight:700}
+.head{width:40px;height:40px;border-radius:8px;border:1px solid var(--border)}
+.player{display:flex;flex-direction:column}
+.player b{font-size:16px;margin-bottom:6px}
+.player span{font-size:13px;color:var(--muted)}
+.tiers{display:flex;gap:6px;flex-wrap:wrap}
+.tier{font-size:11px;padding:6px 8px;border-radius:999px;background:#020617;border:1px solid var(--border)}
+.HT1{background:#3f2d00;color:var(--gold)}
+</style>
+</head>
+<body>
+<header>
+  <h1>RealisticTiers</h1>
+</header>
+
+<div class="tabs" id="tabs"></div>
+<div class="board" id="board"></div>
+
+<script>
+// ===== CONFIG =====
+const modes=['Overall','Vanilla','Sword','Axe','Mace','Pot','UHC','SMP'];
+const tierPoints={HT1:60,LT1:45,HT2:30,LT2:20,HT3:10,LT3:6,HT4:4,LT4:3,HT5:2,LT5:1};
+
+// ===== INSERT PLAYERS HERE =====
+// Add players ONLY here. Do NOT add via website.
+const playersByMode={
+  Vanilla:[
+    {name:'Marlowww',tier:'HT1'},
+    {name:'ItzRealMe',tier:'HT1'}
+  ],
+  Sword:[
+    {name:'Marlowww',tier:'HT1'},
+    {name:'Swight',tier:'HT2'}
+  ],
+  Axe:[
+    {name:'coldified',tier:'HT2'}
+  ],
+  Mace:[],
+  Pot:[],
+  UHC:[],
+  SMP:[]
+};
+// ================================
+
+let currentMode='Overall';
+
+const tabs=document.getElementById('tabs');
+modes.forEach(m=>{
+ const d=document.createElement('div');
+ d.className='tab'+(m==='Overall'?' active':'');
+ d.textContent=m;
+ d.onclick=()=>{
+   currentMode=m;
+   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+   d.classList.add('active');
+   render();
+ };
+ tabs.appendChild(d);
+});
+
+function calcOverall(name){
+ let sum=0;
+ Object.values(playersByMode).forEach(arr=>{
+  const p=arr.find(x=>x.name===name);
+  if(p) sum+=tierPoints[p.tier];
+ });
+ return sum;
+}
+
+function render(){
+ board.innerHTML='';
+ let list=[];
+
+ if(currentMode==='Overall'){
+  const names=[...new Set(Object.values(playersByMode).flat().map(p=>p.name))];
+  list=names.map(n=>({
+    name:n,
+    points:calcOverall(n),
+    tiers:Object.entries(playersByMode)
+      .map(([m,a])=>a.find(p=>p.name===n)?.tier)
+      .filter(Boolean)
+  }));
+ } else {
+  list=playersByMode[currentMode].map(p=>({
+    name:p.name,
+    points:tierPoints[p.tier],
+    tiers:[p.tier]
+  }));
+ }
+
+ list.sort((a,b)=>b.points-a.points);
+
+ list.forEach((p,i)=>{
+  board.innerHTML+=`
+  <div class="row">
+    <div class="rank">${i+1}</div>
+    <img class="head" src="https://mc-heads.net/avatar/${p.name}/40" />
+    <div class="player"><b>${p.name}</b><span>${p.points} points</span></div>
+    <div class="tiers">${p.tiers.map(t=>`<div class="tier ${t}">${t}</div>`).join('')}</div>
+  </div>`;
+ });
+}
+
+render();
+</script>
+</body>
+</html>
